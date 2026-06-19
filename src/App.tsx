@@ -284,11 +284,11 @@ function App() {
                     {isEditingPeople ? (
                       <button
                         aria-label={`Remove ${person.name}`}
-                        className="text-button"
+                        className="person-remove-button"
                         onClick={() => handleRemovePerson(person.id)}
                         type="button"
                       >
-                        Remove
+                        -
                       </button>
                     ) : null}
                   </li>

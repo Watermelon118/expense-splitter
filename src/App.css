@@ -241,6 +241,13 @@
   padding: 8px 10px;
 }
 
+.people-list li span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .expense-list li,
 .balance-list li,
 .settlement-list li {
@@ -326,6 +333,35 @@
 .edit-button:hover {
   background: #eef6f7;
   border-color: #9cc4cb;
+}
+
+.person-remove-button {
+  align-items: center;
+  background: #fff1f0;
+  border: 1px solid #fecaca;
+  border-radius: 999px;
+  color: #b42318;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 24px;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 800;
+  height: 24px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: 24px;
+}
+
+.person-remove-button:hover {
+  background: #fee4e2;
+  border-color: #f97066;
+}
+
+.person-remove-button:focus-visible {
+  outline: 3px solid #fecdca;
+  outline-offset: 2px;
 }
 
 .text-button {
