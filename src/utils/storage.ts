@@ -1,29 +1,65 @@
 import type { Activity, Expense, Person } from "../types";
 
-const STORAGE_KEY = "expense-splitter.currentActivity";
+const ACTIVITIES_STORAGE_KEY = "expense-splitter.activities";
+const CURRENT_ACTIVITY_STORAGE_KEY = "expense-splitter.currentActivity";
+const SELECTED_ACTIVITY_STORAGE_KEY = "expense-splitter.selectedActivityId";
 
-export function loadActivity(fallbackActivity: Activity): Activity {
+export function loadActivities(fallbackActivities: Activity[]): Activity[] {
   try {
-    const storedValue = localStorage.getItem(STORAGE_KEY);
+    const storedActivities = localStorage.getItem(ACTIVITIES_STORAGE_KEY);
 
-    if (!storedValue) {
-      return fallbackActivity;
+    if (storedActivities) {
+      const parsedActivities: unknown = JSON.parse(storedActivities);
+
+      if (isActivityArray(parsedActivities)) {
+        return parsedActivities;
+      }
     }
 
-    const parsedValue: unknown = JSON.parse(storedValue);
+    const storedActivity = localStorage.getItem(CURRENT_ACTIVITY_STORAGE_KEY);
 
-    return isActivity(parsedValue) ? parsedValue : fallbackActivity;
+    if (storedActivity) {
+      const parsedActivity: unknown = JSON.parse(storedActivity);
+
+      if (isActivity(parsedActivity)) {
+        return [parsedActivity];
+      }
+    }
+
+    return fallbackActivities;
   } catch {
-    return fallbackActivity;
+    return fallbackActivities;
   }
 }
 
-export function saveActivity(activity: Activity): void {
+export function saveActivities(activities: Activity[]): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(activity));
+    localStorage.setItem(ACTIVITIES_STORAGE_KEY, JSON.stringify(activities));
   } catch {
     // Persistence is best-effort; the app should still work in memory.
   }
+}
+
+export function loadSelectedActivityId(fallbackActivityId: string): string {
+  try {
+    return (
+      localStorage.getItem(SELECTED_ACTIVITY_STORAGE_KEY) ?? fallbackActivityId
+    );
+  } catch {
+    return fallbackActivityId;
+  }
+}
+
+export function saveSelectedActivityId(activityId: string): void {
+  try {
+    localStorage.setItem(SELECTED_ACTIVITY_STORAGE_KEY, activityId);
+  } catch {
+    // Persistence is best-effort; the app should still work in memory.
+  }
+}
+
+function isActivityArray(value: unknown): value is Activity[] {
+  return Array.isArray(value) && value.length > 0 && value.every(isActivity);
 }
 
 function isActivity(value: unknown): value is Activity {

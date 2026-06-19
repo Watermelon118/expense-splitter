@@ -3,7 +3,12 @@ import { type FormEvent, useEffect, useMemo, useState } from "react";
 import type { Activity, Balance, Person, Settlement } from "./types";
 import { formatCents, parseAmountToCents } from "./utils/money";
 import { calculateBalances, calculateSettlements } from "./utils/settlement";
-import { loadActivity, saveActivity } from "./utils/storage";
+import {
+  loadActivities,
+  loadSelectedActivityId,
+  saveActivities,
+  saveSelectedActivityId,
+} from "./utils/storage";
 import "./App.css";
 
 const sampleActivity: Activity = {
@@ -42,17 +47,62 @@ const sampleActivity: Activity = {
   updatedAt: "2026-06-19T00:00:00.000Z",
 };
 
-const secondaryActivity = {
+const groupDinnerActivity: Activity = {
   id: "group-dinner",
   name: "Group Dinner",
-  summary: "5 people | 4 expenses | Total $320.00",
-  updatedLabel: "Updated yesterday",
+  people: [
+    { id: "person-emma", name: "Emma" },
+    { id: "person-liam", name: "Liam" },
+    { id: "person-mia", name: "Mia" },
+    { id: "person-noah", name: "Noah" },
+    { id: "person-olivia", name: "Olivia" },
+  ],
+  expenses: [
+    {
+      id: "dinner",
+      description: "Dinner",
+      amountCents: 18000,
+      paidByPersonId: "person-emma",
+      createdAt: "2026-06-18T00:00:00.000Z",
+    },
+    {
+      id: "dessert",
+      description: "Dessert",
+      amountCents: 5000,
+      paidByPersonId: "person-liam",
+      createdAt: "2026-06-18T00:00:00.000Z",
+    },
+    {
+      id: "drinks",
+      description: "Drinks",
+      amountCents: 7000,
+      paidByPersonId: "person-mia",
+      createdAt: "2026-06-18T00:00:00.000Z",
+    },
+    {
+      id: "ride",
+      description: "Ride",
+      amountCents: 2000,
+      paidByPersonId: "person-noah",
+      createdAt: "2026-06-18T00:00:00.000Z",
+    },
+  ],
+  createdAt: "2026-06-18T00:00:00.000Z",
+  updatedAt: "2026-06-18T00:00:00.000Z",
 };
 
+const sampleActivities = [sampleActivity, groupDinnerActivity];
+
 function App() {
-  const [activity, setActivity] = useState<Activity>(() =>
-    loadActivity(sampleActivity),
+  const [activities, setActivities] = useState<Activity[]>(() =>
+    loadActivities(sampleActivities),
   );
+  const [selectedActivityId, setSelectedActivityId] = useState(() =>
+    loadSelectedActivityId(sampleActivities[0].id),
+  );
+  const [isCreatingActivity, setIsCreatingActivity] = useState(false);
+  const [activityName, setActivityName] = useState("");
+  const [activityError, setActivityError] = useState("");
   const [personName, setPersonName] = useState("");
   const [personError, setPersonError] = useState("");
   const [expenseDescription, setExpenseDescription] = useState("");
@@ -63,6 +113,10 @@ function App() {
   const [expenseError, setExpenseError] = useState("");
   const [isEditingPeople, setIsEditingPeople] = useState(false);
   const [isEditingExpenses, setIsEditingExpenses] = useState(false);
+  const activity =
+    activities.find((currentActivity) => currentActivity.id === selectedActivityId) ??
+    activities[0] ??
+    sampleActivity;
   const totalSpentCents = useMemo(
     () =>
       activity.expenses.reduce(
@@ -81,8 +135,76 @@ function App() {
     : activity.people[0]?.id ?? "";
 
   useEffect(() => {
-    saveActivity(activity);
-  }, [activity]);
+    saveActivities(activities);
+    saveSelectedActivityId(activity.id);
+  }, [activities, activity.id]);
+
+  function handleSelectActivity(activityId: string) {
+    const nextActivity = activities.find(
+      (currentActivity) => currentActivity.id === activityId,
+    );
+
+    if (!nextActivity) {
+      return;
+    }
+
+    setSelectedActivityId(activityId);
+    setExpensePayerId(nextActivity.people[0]?.id ?? "");
+    setPersonName("");
+    setPersonError("");
+    setExpenseDescription("");
+    setExpenseAmount("");
+    setExpenseError("");
+    setIsEditingPeople(false);
+    setIsEditingExpenses(false);
+  }
+
+  function handleCreateActivity(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const trimmedName = activityName.trim();
+
+    if (!trimmedName) {
+      setActivityError("Enter an activity name.");
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const nextActivity: Activity = {
+      id: createId("activity"),
+      name: trimmedName,
+      people: [],
+      expenses: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    setActivities((currentActivities) => [nextActivity, ...currentActivities]);
+    setSelectedActivityId(nextActivity.id);
+    setActivityName("");
+    setActivityError("");
+    setIsCreatingActivity(false);
+    setExpensePayerId("");
+    setPersonName("");
+    setExpenseDescription("");
+    setExpenseAmount("");
+    setPersonError("");
+    setExpenseError("");
+    setIsEditingPeople(false);
+    setIsEditingExpenses(false);
+  }
+
+  function updateActivity(
+    updateCurrentActivity: (currentActivity: Activity) => Activity,
+  ) {
+    setActivities((currentActivities) =>
+      currentActivities.map((currentActivity) =>
+        currentActivity.id === activity.id
+          ? updateCurrentActivity(currentActivity)
+          : currentActivity,
+      ),
+    );
+  }
 
   function handleAddPerson(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -108,7 +230,7 @@ function App() {
       name: trimmedName,
     };
 
-    setActivity((currentActivity) => ({
+    updateActivity((currentActivity) => ({
       ...currentActivity,
       people: [...currentActivity.people, person],
       updatedAt: new Date().toISOString(),
@@ -144,7 +266,7 @@ function App() {
       return;
     }
 
-    setActivity((currentActivity) => ({
+    updateActivity((currentActivity) => ({
       ...currentActivity,
       expenses: [
         ...currentActivity.expenses,
@@ -180,7 +302,7 @@ function App() {
       (currentPerson) => currentPerson.id !== personId,
     );
 
-    setActivity((currentActivity) => ({
+    updateActivity((currentActivity) => ({
       ...currentActivity,
       people: currentActivity.people.filter(
         (currentPerson) => currentPerson.id !== personId,
@@ -196,7 +318,7 @@ function App() {
   }
 
   function handleDeleteExpense(expenseId: string) {
-    setActivity((currentActivity) => ({
+    updateActivity((currentActivity) => ({
       ...currentActivity,
       expenses: currentActivity.expenses.filter(
         (expense) => expense.id !== expenseId,
@@ -214,7 +336,11 @@ function App() {
           <p className="eyebrow">Shared expenses</p>
           <h1>Expense Splitter</h1>
         </div>
-        <button className="primary-button" type="button">
+        <button
+          className="primary-button"
+          onClick={() => setIsCreatingActivity(true)}
+          type="button"
+        >
           New activity
         </button>
       </header>
@@ -223,23 +349,68 @@ function App() {
         <aside className="activity-sidebar" aria-label="Activities">
           <div className="section-heading">
             <h2>Activities</h2>
-            <span>2 saved</span>
+            <span>{activities.length} saved</span>
           </div>
 
-          <article className="activity-card activity-card-active">
-            <h3>{activity.name}</h3>
-            <p>
-              {activity.people.length} people | {activity.expenses.length}{" "}
-              expenses | Total {formatCents(totalSpentCents)}
-            </p>
-            <span>Updated today</span>
-          </article>
+          {isCreatingActivity ? (
+            <form className="activity-form" onSubmit={handleCreateActivity}>
+              <label>
+                <span>Activity name</span>
+                <input
+                  onChange={(event) => setActivityName(event.target.value)}
+                  placeholder="Weekend Trip"
+                  type="text"
+                  value={activityName}
+                />
+              </label>
+              <div className="activity-form-actions">
+                <button className="secondary-button compact-button" type="submit">
+                  Create
+                </button>
+                <button
+                  className="edit-button"
+                  onClick={() => {
+                    setIsCreatingActivity(false);
+                    setActivityName("");
+                    setActivityError("");
+                  }}
+                  type="button"
+                >
+                  Cancel
+                </button>
+              </div>
+              {activityError ? <p className="form-error">{activityError}</p> : null}
+            </form>
+          ) : null}
 
-          <article className="activity-card">
-            <h3>{secondaryActivity.name}</h3>
-            <p>{secondaryActivity.summary}</p>
-            <span>{secondaryActivity.updatedLabel}</span>
-          </article>
+          <div className="activity-list">
+            {activities.map((currentActivity) => {
+              const activityTotalCents = getTotalSpentCents(currentActivity);
+              const isSelected = currentActivity.id === activity.id;
+
+              return (
+                <button
+                  aria-current={isSelected ? "page" : undefined}
+                  className={
+                    isSelected
+                      ? "activity-card activity-card-active"
+                      : "activity-card"
+                  }
+                  key={currentActivity.id}
+                  onClick={() => handleSelectActivity(currentActivity.id)}
+                  type="button"
+                >
+                  <h3>{currentActivity.name}</h3>
+                  <p>
+                    {currentActivity.people.length} people |{" "}
+                    {currentActivity.expenses.length} expenses | Total{" "}
+                    {formatCents(activityTotalCents)}
+                  </p>
+                  <span>Updated {formatDate(currentActivity.updatedAt)}</span>
+                </button>
+              );
+            })}
+          </div>
         </aside>
 
         <section className="activity-detail" aria-label="Selected activity">
@@ -353,11 +524,15 @@ function App() {
                     onChange={(event) => setExpensePayerId(event.target.value)}
                     value={validExpensePayerId}
                   >
-                    {activity.people.map((person) => (
-                      <option key={person.id} value={person.id}>
-                        {person.name}
-                      </option>
-                    ))}
+                    {activity.people.length === 0 ? (
+                      <option value="">No people yet</option>
+                    ) : (
+                      activity.people.map((person) => (
+                        <option key={person.id} value={person.id}>
+                          {person.name}
+                        </option>
+                      ))
+                    )}
                   </select>
                 </label>
                 <button className="secondary-button compact-button" type="submit">
@@ -460,6 +635,21 @@ function findPerson(people: Person[], personId: string): Person | undefined {
 
 function createId(prefix: string): string {
   return `${prefix}-${crypto.randomUUID()}`;
+}
+
+function getTotalSpentCents(activity: Activity): number {
+  return activity.expenses.reduce(
+    (total, expense) => total + expense.amountCents,
+    0,
+  );
+}
+
+function formatDate(dateValue: string): string {
+  return new Intl.DateTimeFormat("en-NZ", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(dateValue));
 }
 
 function getBalanceClassName(balance: Balance): string {

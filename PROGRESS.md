@@ -20,6 +20,7 @@ This document tracks implementation progress, decisions, verification, and mater
 - Remove/Delete actions moved behind explicit edit mode controls.
 - Remove controls unified as compact edit-mode minus buttons.
 - Current activity persistence added with localStorage.
+- Activity list selection and new activity creation added.
 
 ## Step Log
 
@@ -446,6 +447,41 @@ Useful README/submission material:
 
 - I used localStorage for lightweight persistence because the brief asks for a locally runnable frontend app and does not require backend storage.
 - Invalid stored data is ignored defensively so the app can recover to a known sample activity.
+
+### 14. Add Activity Selection And Creation
+
+What changed:
+
+- Replaced the static Activities sidebar with real activity state.
+- Added clickable activity cards.
+- Added selected activity state.
+- Added a New activity flow with activity name validation.
+- Upgraded storage from a single current activity to an activities array plus selected activity id.
+- Kept a migration path from the earlier single-activity localStorage key.
+
+Decision:
+
+- The sidebar should not look interactive unless it actually is interactive.
+- Creating and selecting activities is part of the intended product model, so it should be implemented before final README work.
+- The MVP still keeps activity management modest: create and select are supported, while deleting whole activities can remain a future improvement.
+
+Verification:
+
+- `npm test` passed.
+- `npm run lint` passed.
+- `npm run build` passed.
+- Browser verification passed:
+  - New activity opens a creation form.
+  - Creating an activity selects it immediately.
+  - Activity cards switch the selected detail view.
+  - Selected activity persists after reload.
+  - Temporary browser test activity was removed after verification.
+  - No browser console warnings or errors were observed.
+
+Useful README/submission material:
+
+- I modelled expenses inside activities because shared expenses usually belong to a trip, dinner, or event.
+- Activity creation and selection are supported locally, with persistence handled by localStorage.
 
 ## Planned Next Steps
 
