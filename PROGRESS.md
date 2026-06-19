@@ -12,6 +12,7 @@ This document tracks implementation progress, decisions, verification, and mater
 - Core TypeScript data models added.
 - Money parsing and formatting utilities added.
 - Pure settlement calculation utilities added.
+- Vitest unit tests added for money and settlement logic.
 
 ## Step Log
 
@@ -180,8 +181,41 @@ Useful README/submission material:
 - Remainder cents are handled explicitly so no money disappears during equal splitting.
 - The algorithm favors predictable and testable results over trying to find a unique settlement ordering.
 
+### 6. Add Unit Tests
+
+What changed:
+
+- Installed Vitest as a development dependency.
+- Added `npm test` and `npm run test:watch` scripts.
+- Added `src/utils/money.test.ts`.
+- Added `src/utils/settlement.test.ts`.
+
+Test coverage added:
+
+- Parses whole dollar and decimal amount strings into cents.
+- Rejects invalid, zero, negative, and over-precise amount input.
+- Formats positive, zero, negative, and large cent values for display.
+- Calculates balances for a single payer.
+- Calculates balances for multiple payers.
+- Returns zero balances when there are no expenses.
+- Handles rounding when cents do not split evenly.
+- Creates settlement suggestions from balances.
+- Returns no settlements when everyone is already settled.
+
+Verification:
+
+- `npm test` passed: 2 test files, 10 tests.
+- `npm run build` passed.
+- `npm run lint` passed.
+
+Useful README/submission material:
+
+- The core calculation logic is covered by unit tests and can be validated independently from the UI.
+- Tests include a rounding case to prove no cents disappear during equal splitting.
+- The app has separate scripts for local development, production build, linting, and tests.
+
 ## Planned Next Steps
 
-1. Add Vitest and unit tests for settlement logic.
-2. Replace the default Vite UI with the first minimal app screen.
+1. Replace the default Vite UI with the first minimal app screen.
+2. Add people and expense input flows.
 3. Add localStorage persistence after the basic UI flow works.
