@@ -13,6 +13,7 @@ This document tracks implementation progress, decisions, verification, and mater
 - Money parsing and formatting utilities added.
 - Pure settlement calculation utilities added.
 - Vitest unit tests added for money and settlement logic.
+- Default Vite screen replaced with a static Expense Splitter app shell.
 
 ## Step Log
 
@@ -214,8 +215,41 @@ Useful README/submission material:
 - Tests include a rounding case to prove no cents disappear during equal splitting.
 - The app has separate scripts for local development, production build, linting, and tests.
 
+### 7. Replace Default Vite Screen With Static App Shell
+
+What changed:
+
+- Replaced the default Vite starter content in `src/App.tsx`.
+- Replaced template component styles in `src/App.css`.
+- Simplified global styles in `src/index.css`.
+
+UI now shows:
+
+- App header for Expense Splitter.
+- Static activity sidebar.
+- Static selected activity detail view.
+- People, expenses, balances, and settlement preview sections.
+
+Decision:
+
+- This step intentionally does not add business state or form behavior.
+- The goal was to make the running app visibly match the take-home domain before wiring interactions.
+- The static numbers match the design document example, which keeps the UI aligned with the planned settlement logic.
+
+Verification:
+
+- `npm run lint` passed.
+- `npm run build` passed.
+- Vite dev server still responds at `http://127.0.0.1:5173/`.
+
+Useful README/submission material:
+
+- I first replaced the default scaffold UI with a domain-specific app shell, then planned to connect the already-tested calculation logic to the UI.
+- The UI was built around the core user workflow: activity, people, expenses, balances, and settlement suggestions.
+
 ## Planned Next Steps
 
-1. Replace the default Vite UI with the first minimal app screen.
+1. Add React state for a single in-memory activity.
 2. Add people and expense input flows.
-3. Add localStorage persistence after the basic UI flow works.
+3. Connect balances and settlement suggestions to the tested utility functions.
+4. Add localStorage persistence after the basic UI flow works.
