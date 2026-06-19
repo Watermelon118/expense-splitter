@@ -18,6 +18,8 @@ This document tracks implementation progress, decisions, verification, and mater
 - In-memory React state and add forms added for people and expenses.
 - Expense deletion and safe person removal added.
 - Remove/Delete actions moved behind explicit edit mode controls.
+- Remove controls unified as compact edit-mode minus buttons.
+- Current activity persistence added with localStorage.
 
 ## Step Log
 
@@ -383,8 +385,70 @@ Useful README/submission material:
 - I kept destructive actions available but intentionally gated them behind edit mode to reduce accidental changes.
 - This is a small UX decision that supports the correction workflow without making delete actions too prominent.
 
+### 12. Unify Destructive Control UI
+
+What changed:
+
+- Replaced visible People `Remove` text buttons with compact circular minus buttons.
+- Replaced Expenses `Delete` text buttons with the same compact circular minus button.
+- Kept accessible labels such as `Remove A` and `Delete Fuel`.
+
+Decision:
+
+- People and Expenses now use the same edit-mode deletion pattern.
+- Compact icon-style controls keep the UI cleaner and avoid overflowing small person tiles.
+
+Verification:
+
+- `npm test` passed.
+- `npm run lint` passed.
+- `npm run build` passed.
+- Browser verification passed:
+  - Remove/Delete text is hidden.
+  - Edit mode shows matching 24x24 minus buttons.
+  - Deleting an expense still updates totals.
+  - No browser console warnings or errors were observed.
+
+Useful README/submission material:
+
+- I adjusted destructive controls after reviewing the UI, keeping the behavior but making the normal view less error-prone and visually consistent.
+
+### 13. Add localStorage Persistence
+
+What changed:
+
+- Added `src/utils/storage.ts`.
+- Added `loadActivity(fallbackActivity)`.
+- Added `saveActivity(activity)`.
+- Connected `App.tsx` to load the current activity from localStorage.
+- Connected `App.tsx` to save activity changes to localStorage.
+- Added shape checks so invalid stored data falls back to the sample activity.
+
+Decision:
+
+- Persistence is scoped to the current activity for the MVP.
+- localStorage keeps the app frontend-only while preserving work after refresh.
+- Storage logic lives outside React components so it can be reasoned about separately from UI state.
+
+Verification:
+
+- `npm test` passed.
+- `npm run lint` passed.
+- `npm run build` passed.
+- Browser verification passed:
+  - Added a unique person and expense.
+  - Reloaded the page.
+  - Confirmed the added person and expense persisted.
+  - Removed the temporary verification data afterward.
+  - No browser console warnings or errors were observed.
+
+Useful README/submission material:
+
+- I used localStorage for lightweight persistence because the brief asks for a locally runnable frontend app and does not require backend storage.
+- Invalid stored data is ignored defensively so the app can recover to a known sample activity.
+
 ## Planned Next Steps
 
-1. Add localStorage persistence for the current activity.
-2. Replace sample activity history with real created activities if time allows.
-3. Write final README and submission answers.
+1. Replace the default Vite README with project-specific setup and decisions.
+2. Add written submission answers.
+3. Do a final browser pass and GitHub sync.

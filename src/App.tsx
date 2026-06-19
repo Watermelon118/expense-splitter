@@ -1,8 +1,9 @@
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 
 import type { Activity, Balance, Person, Settlement } from "./types";
 import { formatCents, parseAmountToCents } from "./utils/money";
 import { calculateBalances, calculateSettlements } from "./utils/settlement";
+import { loadActivity, saveActivity } from "./utils/storage";
 import "./App.css";
 
 const sampleActivity: Activity = {
@@ -49,7 +50,9 @@ const secondaryActivity = {
 };
 
 function App() {
-  const [activity, setActivity] = useState<Activity>(sampleActivity);
+  const [activity, setActivity] = useState<Activity>(() =>
+    loadActivity(sampleActivity),
+  );
   const [personName, setPersonName] = useState("");
   const [personError, setPersonError] = useState("");
   const [expenseDescription, setExpenseDescription] = useState("");
@@ -73,6 +76,13 @@ function App() {
     [activity.people, activity.expenses],
   );
   const settlements = useMemo(() => calculateSettlements(balances), [balances]);
+  const validExpensePayerId = findPerson(activity.people, expensePayerId)
+    ? expensePayerId
+    : activity.people[0]?.id ?? "";
+
+  useEffect(() => {
+    saveActivity(activity);
+  }, [activity]);
 
   function handleAddPerson(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -129,7 +139,7 @@ function App() {
       return;
     }
 
-    if (!findPerson(activity.people, expensePayerId)) {
+    if (!validExpensePayerId) {
       setExpenseError("Choose who paid for this expense.");
       return;
     }
@@ -142,7 +152,7 @@ function App() {
           id: createId("expense"),
           description: trimmedDescription,
           amountCents,
-          paidByPersonId: expensePayerId,
+          paidByPersonId: validExpensePayerId,
           createdAt: new Date().toISOString(),
         },
       ],
@@ -341,7 +351,7 @@ function App() {
                   <span>Paid by</span>
                   <select
                     onChange={(event) => setExpensePayerId(event.target.value)}
-                    value={expensePayerId}
+                    value={validExpensePayerId}
                   >
                     {activity.people.map((person) => (
                       <option key={person.id} value={person.id}>
