@@ -284,7 +284,7 @@ function App() {
                     {isEditingPeople ? (
                       <button
                         aria-label={`Remove ${person.name}`}
-                        className="person-remove-button"
+                        className="remove-icon-button"
                         onClick={() => handleRemovePerson(person.id)}
                         type="button"
                       >
@@ -374,11 +374,11 @@ function App() {
                           {isEditingExpenses ? (
                             <button
                               aria-label={`Delete ${expense.description}`}
-                              className="text-button"
+                              className="remove-icon-button"
                               onClick={() => handleDeleteExpense(expense.id)}
                               type="button"
                             >
-                              Delete
+                              -
                             </button>
                           ) : null}
                         </div>

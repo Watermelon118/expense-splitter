@@ -335,7 +335,7 @@
   border-color: #9cc4cb;
 }
 
-.person-remove-button {
+.remove-icon-button {
   align-items: center;
   background: #fff1f0;
   border: 1px solid #fecaca;
@@ -354,33 +354,12 @@
   width: 24px;
 }
 
-.person-remove-button:hover {
+.remove-icon-button:hover {
   background: #fee4e2;
   border-color: #f97066;
 }
 
-.person-remove-button:focus-visible {
-  outline: 3px solid #fecdca;
-  outline-offset: 2px;
-}
-
-.text-button {
-  background: transparent;
-  border: 0;
-  border-radius: 6px;
-  color: #b42318;
-  cursor: pointer;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  padding: 4px 6px;
-}
-
-.text-button:hover {
-  background: #fef3f2;
-}
-
-.text-button:focus-visible {
+.remove-icon-button:focus-visible {
   outline: 3px solid #fecdca;
   outline-offset: 2px;
 }
