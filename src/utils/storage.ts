@@ -59,7 +59,7 @@ export function saveSelectedActivityId(activityId: string): void {
 }
 
 function isActivityArray(value: unknown): value is Activity[] {
-  return Array.isArray(value) && value.length > 0 && value.every(isActivity);
+  return Array.isArray(value) && value.every(isActivity);
 }
 
 function isActivity(value: unknown): value is Activity {

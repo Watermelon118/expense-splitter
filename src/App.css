@@ -57,6 +57,26 @@
   padding: 22px;
 }
 
+.empty-detail {
+  align-content: center;
+  display: grid;
+  gap: 14px;
+  min-height: 360px;
+  place-items: start;
+}
+
+.empty-detail h2 {
+  color: #122033;
+  font-size: 28px;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.empty-detail p:not(.eyebrow) {
+  color: #334155;
+  max-width: 520px;
+}
+
 .section-heading,
 .detail-header {
   display: flex;
@@ -180,6 +200,13 @@
   align-items: center;
   display: flex;
   gap: 8px;
+}
+
+.sidebar-empty-state {
+  color: #65758b;
+  font-size: 14px;
+  line-height: 1.45;
+  padding: 8px 2px;
 }
 
 .detail-header {

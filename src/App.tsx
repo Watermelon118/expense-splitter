@@ -11,94 +11,12 @@ import {
 } from "./utils/storage";
 import "./App.css";
 
-const sampleActivity: Activity = {
-  id: "queenstown-trip",
-  name: "Queenstown Trip",
-  people: [
-    { id: "person-a", name: "A" },
-    { id: "person-b", name: "B" },
-    { id: "person-c", name: "C" },
-    { id: "person-d", name: "D" },
-  ],
-  expenses: [
-    {
-      id: "hotel",
-      description: "Hotel",
-      amountCents: 30000,
-      paidByPersonId: "person-a",
-      createdAt: "2026-06-19T00:00:00.000Z",
-    },
-    {
-      id: "fuel",
-      description: "Fuel",
-      amountCents: 20000,
-      paidByPersonId: "person-b",
-      createdAt: "2026-06-19T00:00:00.000Z",
-    },
-    {
-      id: "car-rental",
-      description: "Car Rental",
-      amountCents: 50000,
-      paidByPersonId: "person-c",
-      createdAt: "2026-06-19T00:00:00.000Z",
-    },
-  ],
-  createdAt: "2026-06-19T00:00:00.000Z",
-  updatedAt: "2026-06-19T00:00:00.000Z",
-};
-
-const groupDinnerActivity: Activity = {
-  id: "group-dinner",
-  name: "Group Dinner",
-  people: [
-    { id: "person-emma", name: "Emma" },
-    { id: "person-liam", name: "Liam" },
-    { id: "person-mia", name: "Mia" },
-    { id: "person-noah", name: "Noah" },
-    { id: "person-olivia", name: "Olivia" },
-  ],
-  expenses: [
-    {
-      id: "dinner",
-      description: "Dinner",
-      amountCents: 18000,
-      paidByPersonId: "person-emma",
-      createdAt: "2026-06-18T00:00:00.000Z",
-    },
-    {
-      id: "dessert",
-      description: "Dessert",
-      amountCents: 5000,
-      paidByPersonId: "person-liam",
-      createdAt: "2026-06-18T00:00:00.000Z",
-    },
-    {
-      id: "drinks",
-      description: "Drinks",
-      amountCents: 7000,
-      paidByPersonId: "person-mia",
-      createdAt: "2026-06-18T00:00:00.000Z",
-    },
-    {
-      id: "ride",
-      description: "Ride",
-      amountCents: 2000,
-      paidByPersonId: "person-noah",
-      createdAt: "2026-06-18T00:00:00.000Z",
-    },
-  ],
-  createdAt: "2026-06-18T00:00:00.000Z",
-  updatedAt: "2026-06-18T00:00:00.000Z",
-};
-
-const sampleActivities = [sampleActivity, groupDinnerActivity];
-
 function App() {
   const [activities, setActivities] = useState<Activity[]>(() =>
-    loadActivities(sampleActivities),
+    loadActivities([]),
   );
   const [selectedActivityId, setSelectedActivityId] = useState(() =>
-    loadSelectedActivityId(sampleActivities[0].id),
+    loadSelectedActivityId(""),
   );
   const [isCreatingActivity, setIsCreatingActivity] = useState(false);
   const [activityName, setActivityName] = useState("");
@@ -107,37 +25,41 @@ function App() {
   const [personError, setPersonError] = useState("");
   const [expenseDescription, setExpenseDescription] = useState("");
   const [expenseAmount, setExpenseAmount] = useState("");
-  const [expensePayerId, setExpensePayerId] = useState(
-    sampleActivity.people[0]?.id ?? "",
-  );
+  const [expensePayerId, setExpensePayerId] = useState("");
   const [expenseError, setExpenseError] = useState("");
   const [isEditingPeople, setIsEditingPeople] = useState(false);
   const [isEditingExpenses, setIsEditingExpenses] = useState(false);
   const activity =
     activities.find((currentActivity) => currentActivity.id === selectedActivityId) ??
-    activities[0] ??
-    sampleActivity;
+    activities[0];
+  const hasActivity = activity !== undefined;
   const totalSpentCents = useMemo(
-    () =>
-      activity.expenses.reduce(
+    () => {
+      if (!activity) {
+        return 0;
+      }
+
+      return activity.expenses.reduce(
         (total, expense) => total + expense.amountCents,
         0,
-      ),
-    [activity.expenses],
+      );
+    },
+    [activity],
   );
   const balances = useMemo(
-    () => calculateBalances(activity.people, activity.expenses),
-    [activity.people, activity.expenses],
+    () =>
+      activity ? calculateBalances(activity.people, activity.expenses) : [],
+    [activity],
   );
   const settlements = useMemo(() => calculateSettlements(balances), [balances]);
-  const validExpensePayerId = findPerson(activity.people, expensePayerId)
+  const validExpensePayerId = activity && findPerson(activity.people, expensePayerId)
     ? expensePayerId
-    : activity.people[0]?.id ?? "";
+    : activity?.people[0]?.id ?? "";
 
   useEffect(() => {
     saveActivities(activities);
-    saveSelectedActivityId(activity.id);
-  }, [activities, activity.id]);
+    saveSelectedActivityId(activity?.id ?? "");
+  }, [activities, activity?.id]);
 
   function handleSelectActivity(activityId: string) {
     const nextActivity = activities.find(
@@ -197,6 +119,10 @@ function App() {
   function updateActivity(
     updateCurrentActivity: (currentActivity: Activity) => Activity,
   ) {
+    if (!activity) {
+      return;
+    }
+
     setActivities((currentActivities) =>
       currentActivities.map((currentActivity) =>
         currentActivity.id === activity.id
@@ -208,6 +134,10 @@ function App() {
 
   function handleAddPerson(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!activity) {
+      return;
+    }
 
     const trimmedName = personName.trim();
 
@@ -242,6 +172,10 @@ function App() {
 
   function handleAddExpense(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!activity) {
+      return;
+    }
 
     const trimmedDescription = expenseDescription.trim();
     const amountCents = parseAmountToCents(expenseAmount);
@@ -286,6 +220,10 @@ function App() {
   }
 
   function handleRemovePerson(personId: string) {
+    if (!activity) {
+      return;
+    }
+
     const person = findPerson(activity.people, personId);
     const hasPaidExpense = activity.expenses.some(
       (expense) => expense.paidByPersonId === personId,
@@ -318,6 +256,10 @@ function App() {
   }
 
   function handleDeleteExpense(expenseId: string) {
+    if (!activity) {
+      return;
+    }
+
     updateActivity((currentActivity) => ({
       ...currentActivity,
       expenses: currentActivity.expenses.filter(
@@ -384,9 +326,15 @@ function App() {
           ) : null}
 
           <div className="activity-list">
+            {activities.length === 0 ? (
+              <div className="sidebar-empty-state">
+                No activities yet. Create one to start splitting expenses.
+              </div>
+            ) : null}
+
             {activities.map((currentActivity) => {
               const activityTotalCents = getTotalSpentCents(currentActivity);
-              const isSelected = currentActivity.id === activity.id;
+              const isSelected = currentActivity.id === activity?.id;
 
               return (
                 <button
@@ -413,7 +361,8 @@ function App() {
           </div>
         </aside>
 
-        <section className="activity-detail" aria-label="Selected activity">
+        {hasActivity ? (
+          <section className="activity-detail" aria-label="Selected activity">
           <div className="detail-header">
             <div>
               <p className="eyebrow">Current activity</p>
@@ -623,7 +572,24 @@ function App() {
               </button>
             </section>
           </div>
-        </section>
+          </section>
+        ) : (
+          <section className="activity-detail empty-detail" aria-label="No activity selected">
+            <p className="eyebrow">Current activity</p>
+            <h2>No activity yet</h2>
+            <p>
+              Create your first activity to add people, record expenses, and see
+              settlement suggestions.
+            </p>
+            <button
+              className="primary-button"
+              onClick={() => setIsCreatingActivity(true)}
+              type="button"
+            >
+              New activity
+            </button>
+          </section>
+        )}
       </section>
     </main>
   );

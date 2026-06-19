@@ -21,6 +21,7 @@ This document tracks implementation progress, decisions, verification, and mater
 - Remove controls unified as compact edit-mode minus buttons.
 - Current activity persistence added with localStorage.
 - Activity list selection and new activity creation added.
+- Default sample activities removed so first-time users start from an empty state.
 
 ## Step Log
 
@@ -482,6 +483,39 @@ Useful README/submission material:
 
 - I modelled expenses inside activities because shared expenses usually belong to a trip, dinner, or event.
 - Activity creation and selection are supported locally, with persistence handled by localStorage.
+
+### 15. Remove Default Sample Data
+
+What changed:
+
+- Removed hardcoded sample activities from the app default state.
+- First-time users now see an empty Activities list.
+- The right panel shows a clear empty state when no activity exists.
+- New activity creation remains available from the header and empty state.
+- localStorage still loads existing user-created activities when present.
+
+Decision:
+
+- A take-home evaluator should see a clean app state instead of preloaded demo data.
+- Empty state behavior is now part of the actual workflow rather than something hidden behind sample content.
+
+Verification:
+
+- `npm test` passed.
+- `npm run lint` passed.
+- `npm run build` passed.
+- Browser verification passed:
+  - Cleared app localStorage to simulate a first-time visitor.
+  - Confirmed `0 saved`, no activity cards, and `No activity yet`.
+  - Created a first activity from the empty state.
+  - Confirmed the new activity was selected and usable.
+  - Cleared the verification activity afterward.
+  - No browser console warnings or errors were observed.
+
+Useful README/submission material:
+
+- The app starts empty and guides the user to create their first activity.
+- Seed data is not required for normal use.
 
 ## Planned Next Steps
 
