@@ -58,6 +58,8 @@ function App() {
     sampleActivity.people[0]?.id ?? "",
   );
   const [expenseError, setExpenseError] = useState("");
+  const [isEditingPeople, setIsEditingPeople] = useState(false);
+  const [isEditingExpenses, setIsEditingExpenses] = useState(false);
   const totalSpentCents = useMemo(
     () =>
       activity.expenses.reduce(
@@ -245,8 +247,20 @@ function App() {
           <div className="detail-grid">
             <section className="panel">
               <div className="section-heading">
-                <h3>People</h3>
-                <span>{activity.people.length} members</span>
+                <div>
+                  <h3>People</h3>
+                  <span>{activity.people.length} members</span>
+                </div>
+                <button
+                  aria-label={isEditingPeople ? "Finish editing people" : "Edit people"}
+                  className="edit-button"
+                  onClick={() =>
+                    setIsEditingPeople((currentValue) => !currentValue)
+                  }
+                  type="button"
+                >
+                  {isEditingPeople ? "Done" : "Edit"}
+                </button>
               </div>
               <form className="inline-form" onSubmit={handleAddPerson}>
                 <label>
@@ -267,14 +281,16 @@ function App() {
                 {activity.people.map((person) => (
                   <li key={person.id}>
                     <span>{person.name}</span>
-                    <button
-                      aria-label={`Remove ${person.name}`}
-                      className="text-button"
-                      onClick={() => handleRemovePerson(person.id)}
-                      type="button"
-                    >
-                      Remove
-                    </button>
+                    {isEditingPeople ? (
+                      <button
+                        aria-label={`Remove ${person.name}`}
+                        className="text-button"
+                        onClick={() => handleRemovePerson(person.id)}
+                        type="button"
+                      >
+                        Remove
+                      </button>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -282,8 +298,22 @@ function App() {
 
             <section className="panel">
               <div className="section-heading">
-                <h3>Expenses</h3>
-                <span>{activity.expenses.length} items</span>
+                <div>
+                  <h3>Expenses</h3>
+                  <span>{activity.expenses.length} items</span>
+                </div>
+                <button
+                  aria-label={
+                    isEditingExpenses ? "Finish editing expenses" : "Edit expenses"
+                  }
+                  className="edit-button"
+                  onClick={() =>
+                    setIsEditingExpenses((currentValue) => !currentValue)
+                  }
+                  type="button"
+                >
+                  {isEditingExpenses ? "Done" : "Edit"}
+                </button>
               </div>
               <form className="expense-form" onSubmit={handleAddExpense}>
                 <label>
@@ -341,14 +371,16 @@ function App() {
                             {payer?.name ?? "Unknown"} paid{" "}
                             {formatCents(expense.amountCents)}
                           </strong>
-                          <button
-                            aria-label={`Delete ${expense.description}`}
-                            className="text-button"
-                            onClick={() => handleDeleteExpense(expense.id)}
-                            type="button"
-                          >
-                            Delete
-                          </button>
+                          {isEditingExpenses ? (
+                            <button
+                              aria-label={`Delete ${expense.description}`}
+                              className="text-button"
+                              onClick={() => handleDeleteExpense(expense.id)}
+                              type="button"
+                            >
+                              Delete
+                            </button>
+                          ) : null}
                         </div>
                       </li>
                     );

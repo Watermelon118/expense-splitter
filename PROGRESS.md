@@ -17,6 +17,7 @@ This document tracks implementation progress, decisions, verification, and mater
 - Static UI converted to render from activity data and settlement utilities.
 - In-memory React state and add forms added for people and expenses.
 - Expense deletion and safe person removal added.
+- Remove/Delete actions moved behind explicit edit mode controls.
 
 ## Step Log
 
@@ -351,6 +352,36 @@ Useful README/submission material:
 
 - I chose to block removing people who are referenced by expenses, because removing a payer would otherwise leave invalid data.
 - Deleting an expense is supported as the simple correction path for entered mistakes.
+
+### 11. Hide Destructive Actions Behind Edit Mode
+
+What changed:
+
+- Added edit mode state for the People panel.
+- Added edit mode state for the Expenses panel.
+- Remove/Delete actions are hidden by default.
+- People and Expenses panels now show an `Edit` button that changes to `Done`.
+- Added accessible labels such as `Edit people`, `Edit expenses`, and `Delete Fuel`.
+
+Decision:
+
+- Destructive actions should not sit directly beside every name or expense during normal use.
+- Hiding Remove/Delete behind an explicit edit mode reduces accidental clicks while keeping correction flows available.
+
+Verification:
+
+- `npm run lint` passed.
+- `npm run build` passed.
+- Browser verification passed:
+  - Remove/Delete text is not visible by default.
+  - Edit buttons reveal Remove/Delete actions.
+  - Deleting `Fuel` in edit mode updates total spending to `$800.00`.
+  - No browser console warnings or errors were observed.
+
+Useful README/submission material:
+
+- I kept destructive actions available but intentionally gated them behind edit mode to reduce accidental changes.
+- This is a small UX decision that supports the correction workflow without making delete actions too prominent.
 
 ## Planned Next Steps
 
