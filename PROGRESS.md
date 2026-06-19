@@ -15,6 +15,7 @@ This document tracks implementation progress, decisions, verification, and mater
 - Vitest unit tests added for money and settlement logic.
 - Default Vite screen replaced with a static Expense Splitter app shell.
 - Static UI converted to render from activity data and settlement utilities.
+- In-memory React state and add forms added for people and expenses.
 
 ## Step Log
 
@@ -278,9 +279,47 @@ Useful README/submission material:
 - After testing the calculation utilities independently, I connected them to the UI so the displayed summaries come from the same tested logic.
 - This reduces duplication between UI examples and business logic.
 
+### 9. Add In-Memory People And Expense Forms
+
+What changed:
+
+- Converted the current activity in `src/App.tsx` into React state.
+- Added an Add person form.
+- Added an Add expense form with description, amount, and payer selection.
+- Connected amount input to `parseAmountToCents`.
+- Kept balances and settlement suggestions computed from the updated state.
+- Added compact form styling in `src/App.css`.
+
+Current behavior:
+
+- Adding a person updates the people count and recalculates balances.
+- Adding an expense updates the expense list, total spending, balances, and settlement suggestions.
+- Duplicate person names are blocked.
+- Empty person names are blocked.
+- Invalid expense description, amount, or payer state is blocked.
+- Data is currently in memory only; refreshing the browser resets to the sample activity.
+
+Decision:
+
+- Persistence is intentionally deferred until after the core in-memory workflow works.
+- This keeps UI state, settlement logic, and storage concerns separated.
+
+Verification:
+
+- `npm test` passed: 2 test files, 10 tests.
+- `npm run lint` passed.
+- `npm run build` passed.
+- Browser verification passed by adding a new person and a new expense.
+- No browser console warnings or errors were observed.
+
+Useful README/submission material:
+
+- I built the UI in layers: first a static shell, then data-driven rendering, then in-memory interactions.
+- This made it easier to verify that settlement output stays tied to the tested utility functions as the UI becomes interactive.
+
 ## Planned Next Steps
 
-1. Add React state for the current in-memory activity.
-2. Add people and expense input flows.
-3. Add delete actions for expenses and safe person removal.
-4. Add localStorage persistence after the basic UI flow works.
+1. Add delete actions for expenses.
+2. Add safe person removal for people who have not paid expenses.
+3. Add localStorage persistence after the basic UI flow works.
+4. Replace sample activity history with real created activities if time allows.

@@ -1,5 +1,7 @@
+import { type FormEvent, useMemo, useState } from "react";
+
 import type { Activity, Balance, Person, Settlement } from "./types";
-import { formatCents } from "./utils/money";
+import { formatCents, parseAmountToCents } from "./utils/money";
 import { calculateBalances, calculateSettlements } from "./utils/settlement";
 import "./App.css";
 
@@ -47,13 +49,107 @@ const secondaryActivity = {
 };
 
 function App() {
-  const activity = sampleActivity;
-  const totalSpentCents = activity.expenses.reduce(
-    (total, expense) => total + expense.amountCents,
-    0,
+  const [activity, setActivity] = useState<Activity>(sampleActivity);
+  const [personName, setPersonName] = useState("");
+  const [personError, setPersonError] = useState("");
+  const [expenseDescription, setExpenseDescription] = useState("");
+  const [expenseAmount, setExpenseAmount] = useState("");
+  const [expensePayerId, setExpensePayerId] = useState(
+    sampleActivity.people[0]?.id ?? "",
   );
-  const balances = calculateBalances(activity.people, activity.expenses);
-  const settlements = calculateSettlements(balances);
+  const [expenseError, setExpenseError] = useState("");
+  const totalSpentCents = useMemo(
+    () =>
+      activity.expenses.reduce(
+        (total, expense) => total + expense.amountCents,
+        0,
+      ),
+    [activity.expenses],
+  );
+  const balances = useMemo(
+    () => calculateBalances(activity.people, activity.expenses),
+    [activity.people, activity.expenses],
+  );
+  const settlements = useMemo(() => calculateSettlements(balances), [balances]);
+
+  function handleAddPerson(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const trimmedName = personName.trim();
+
+    if (!trimmedName) {
+      setPersonError("Enter a person name.");
+      return;
+    }
+
+    const isDuplicate = activity.people.some(
+      (person) => person.name.toLowerCase() === trimmedName.toLowerCase(),
+    );
+
+    if (isDuplicate) {
+      setPersonError(`${trimmedName} is already in this activity.`);
+      return;
+    }
+
+    const person: Person = {
+      id: createId("person"),
+      name: trimmedName,
+    };
+
+    setActivity((currentActivity) => ({
+      ...currentActivity,
+      people: [...currentActivity.people, person],
+      updatedAt: new Date().toISOString(),
+    }));
+    setExpensePayerId((currentPayerId) => currentPayerId || person.id);
+    setPersonName("");
+    setPersonError("");
+  }
+
+  function handleAddExpense(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const trimmedDescription = expenseDescription.trim();
+    const amountCents = parseAmountToCents(expenseAmount);
+
+    if (activity.people.length < 2) {
+      setExpenseError("Add at least two people before recording expenses.");
+      return;
+    }
+
+    if (!trimmedDescription) {
+      setExpenseError("Enter an expense description.");
+      return;
+    }
+
+    if (amountCents === null) {
+      setExpenseError("Enter an amount greater than 0 with up to 2 decimals.");
+      return;
+    }
+
+    if (!findPerson(activity.people, expensePayerId)) {
+      setExpenseError("Choose who paid for this expense.");
+      return;
+    }
+
+    setActivity((currentActivity) => ({
+      ...currentActivity,
+      expenses: [
+        ...currentActivity.expenses,
+        {
+          id: createId("expense"),
+          description: trimmedDescription,
+          amountCents,
+          paidByPersonId: expensePayerId,
+          createdAt: new Date().toISOString(),
+        },
+      ],
+      updatedAt: new Date().toISOString(),
+    }));
+    setExpenseDescription("");
+    setExpenseAmount("");
+    setExpenseError("");
+  }
 
   return (
     <main className="app-shell">
@@ -108,6 +204,21 @@ function App() {
                 <h3>People</h3>
                 <span>{activity.people.length} members</span>
               </div>
+              <form className="inline-form" onSubmit={handleAddPerson}>
+                <label>
+                  <span>Name</span>
+                  <input
+                    onChange={(event) => setPersonName(event.target.value)}
+                    placeholder="Alex"
+                    type="text"
+                    value={personName}
+                  />
+                </label>
+                <button className="secondary-button compact-button" type="submit">
+                  Add
+                </button>
+              </form>
+              {personError ? <p className="form-error">{personError}</p> : null}
               <ul className="people-list">
                 {activity.people.map((person) => (
                   <li key={person.id}>{person.name}</li>
@@ -120,6 +231,46 @@ function App() {
                 <h3>Expenses</h3>
                 <span>{activity.expenses.length} items</span>
               </div>
+              <form className="expense-form" onSubmit={handleAddExpense}>
+                <label>
+                  <span>Description</span>
+                  <input
+                    onChange={(event) =>
+                      setExpenseDescription(event.target.value)
+                    }
+                    placeholder="Dinner"
+                    type="text"
+                    value={expenseDescription}
+                  />
+                </label>
+                <label>
+                  <span>Amount</span>
+                  <input
+                    inputMode="decimal"
+                    onChange={(event) => setExpenseAmount(event.target.value)}
+                    placeholder="45.50"
+                    type="text"
+                    value={expenseAmount}
+                  />
+                </label>
+                <label>
+                  <span>Paid by</span>
+                  <select
+                    onChange={(event) => setExpensePayerId(event.target.value)}
+                    value={expensePayerId}
+                  >
+                    {activity.people.map((person) => (
+                      <option key={person.id} value={person.id}>
+                        {person.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button className="secondary-button compact-button" type="submit">
+                  Add expense
+                </button>
+              </form>
+              {expenseError ? <p className="form-error">{expenseError}</p> : null}
               <ul className="expense-list">
                 {activity.expenses.map((expense) => {
                   const payer = findPerson(activity.people, expense.paidByPersonId);
@@ -192,6 +343,10 @@ function App() {
 
 function findPerson(people: Person[], personId: string): Person | undefined {
   return people.find((person) => person.id === personId);
+}
+
+function createId(prefix: string): string {
+  return `${prefix}-${crypto.randomUUID()}`;
 }
 
 function getBalanceClassName(balance: Balance): string {
