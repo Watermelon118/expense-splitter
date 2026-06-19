@@ -16,6 +16,7 @@ This document tracks implementation progress, decisions, verification, and mater
 - Default Vite screen replaced with a static Expense Splitter app shell.
 - Static UI converted to render from activity data and settlement utilities.
 - In-memory React state and add forms added for people and expenses.
+- Expense deletion and safe person removal added.
 
 ## Step Log
 
@@ -317,9 +318,42 @@ Useful README/submission material:
 - I built the UI in layers: first a static shell, then data-driven rendering, then in-memory interactions.
 - This made it easier to verify that settlement output stays tied to the tested utility functions as the UI becomes interactive.
 
+### 10. Add Delete Expense And Safe Remove Person
+
+What changed:
+
+- Added Remove buttons for people.
+- Added Delete buttons for expenses.
+- Added accessible button names such as `Remove A` and `Delete Hotel`.
+- Added logic that blocks removing a person if they are the payer of any existing expense.
+- Deleting an expense recalculates totals, balances, and settlement suggestions immediately.
+- Removing an unpaid person recalculates balances across the remaining people immediately.
+
+Decision:
+
+- A person can only be removed when they are not referenced as an expense payer.
+- This prevents invalid expense data while still allowing accidentally added unpaid people to be removed.
+- If a paid expense is deleted first, the former payer can then be removed.
+
+Verification:
+
+- `npm run lint` passed.
+- `npm run build` passed.
+- Browser verification passed:
+  - Added and removed unpaid person `E`.
+  - Confirmed paid person `A` was blocked while `Hotel` existed.
+  - Deleted `Hotel`.
+  - Removed `A` after deleting their paid expense.
+  - Confirmed total spending updated to `$700.00`.
+  - No browser console warnings or errors were observed.
+
+Useful README/submission material:
+
+- I chose to block removing people who are referenced by expenses, because removing a payer would otherwise leave invalid data.
+- Deleting an expense is supported as the simple correction path for entered mistakes.
+
 ## Planned Next Steps
 
-1. Add delete actions for expenses.
-2. Add safe person removal for people who have not paid expenses.
-3. Add localStorage persistence after the basic UI flow works.
-4. Replace sample activity history with real created activities if time allows.
+1. Add localStorage persistence for the current activity.
+2. Replace sample activity history with real created activities if time allows.
+3. Write final README and submission answers.

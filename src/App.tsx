@@ -151,6 +151,50 @@ function App() {
     setExpenseError("");
   }
 
+  function handleRemovePerson(personId: string) {
+    const person = findPerson(activity.people, personId);
+    const hasPaidExpense = activity.expenses.some(
+      (expense) => expense.paidByPersonId === personId,
+    );
+
+    if (hasPaidExpense) {
+      setPersonError(
+        `${person?.name ?? "This person"} cannot be removed because they are linked to existing expenses.`,
+      );
+      return;
+    }
+
+    const remainingPeople = activity.people.filter(
+      (currentPerson) => currentPerson.id !== personId,
+    );
+
+    setActivity((currentActivity) => ({
+      ...currentActivity,
+      people: currentActivity.people.filter(
+        (currentPerson) => currentPerson.id !== personId,
+      ),
+      updatedAt: new Date().toISOString(),
+    }));
+    setExpensePayerId((currentPayerId) =>
+      currentPayerId === personId
+        ? remainingPeople[0]?.id ?? ""
+        : currentPayerId,
+    );
+    setPersonError("");
+  }
+
+  function handleDeleteExpense(expenseId: string) {
+    setActivity((currentActivity) => ({
+      ...currentActivity,
+      expenses: currentActivity.expenses.filter(
+        (expense) => expense.id !== expenseId,
+      ),
+      updatedAt: new Date().toISOString(),
+    }));
+    setExpenseError("");
+    setPersonError("");
+  }
+
   return (
     <main className="app-shell">
       <header className="app-header">
@@ -221,7 +265,17 @@ function App() {
               {personError ? <p className="form-error">{personError}</p> : null}
               <ul className="people-list">
                 {activity.people.map((person) => (
-                  <li key={person.id}>{person.name}</li>
+                  <li key={person.id}>
+                    <span>{person.name}</span>
+                    <button
+                      aria-label={`Remove ${person.name}`}
+                      className="text-button"
+                      onClick={() => handleRemovePerson(person.id)}
+                      type="button"
+                    >
+                      Remove
+                    </button>
+                  </li>
                 ))}
               </ul>
             </section>
@@ -271,21 +325,38 @@ function App() {
                 </button>
               </form>
               {expenseError ? <p className="form-error">{expenseError}</p> : null}
-              <ul className="expense-list">
-                {activity.expenses.map((expense) => {
-                  const payer = findPerson(activity.people, expense.paidByPersonId);
+              {activity.expenses.length > 0 ? (
+                <ul className="expense-list">
+                  {activity.expenses.map((expense) => {
+                    const payer = findPerson(
+                      activity.people,
+                      expense.paidByPersonId,
+                    );
 
-                  return (
-                    <li key={expense.id}>
-                      <span>{expense.description}</span>
-                      <strong>
-                        {payer?.name ?? "Unknown"} paid{" "}
-                        {formatCents(expense.amountCents)}
-                      </strong>
-                    </li>
-                  );
-                })}
-              </ul>
+                    return (
+                      <li key={expense.id}>
+                        <span>{expense.description}</span>
+                        <div className="row-actions">
+                          <strong>
+                            {payer?.name ?? "Unknown"} paid{" "}
+                            {formatCents(expense.amountCents)}
+                          </strong>
+                          <button
+                            aria-label={`Delete ${expense.description}`}
+                            className="text-button"
+                            onClick={() => handleDeleteExpense(expense.id)}
+                            type="button"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className="empty-state">No expenses recorded yet.</p>
+              )}
             </section>
 
             <section className="panel">
