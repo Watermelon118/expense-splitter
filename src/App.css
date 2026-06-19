@@ -207,12 +207,21 @@
   font-weight: 700;
 }
 
+.empty-state {
+  color: #65758b;
+  margin: 0 0 16px;
+}
+
 .positive {
   color: #0f766e !important;
 }
 
 .negative {
   color: #b42318 !important;
+}
+
+.neutral {
+  color: #65758b !important;
 }
 
 .settlement-panel {

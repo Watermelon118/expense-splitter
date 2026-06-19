@@ -14,6 +14,7 @@ This document tracks implementation progress, decisions, verification, and mater
 - Pure settlement calculation utilities added.
 - Vitest unit tests added for money and settlement logic.
 - Default Vite screen replaced with a static Expense Splitter app shell.
+- Static UI converted to render from activity data and settlement utilities.
 
 ## Step Log
 
@@ -247,9 +248,39 @@ Useful README/submission material:
 - I first replaced the default scaffold UI with a domain-specific app shell, then planned to connect the already-tested calculation logic to the UI.
 - The UI was built around the core user workflow: activity, people, expenses, balances, and settlement suggestions.
 
+### 8. Render UI From Activity Data
+
+What changed:
+
+- Updated `src/App.tsx` to render from a typed `Activity` object.
+- Connected total spending display to expense data.
+- Connected balances to `calculateBalances`.
+- Connected settlement suggestions to `calculateSettlements`.
+- Used `formatCents` for all money display.
+- Added neutral and empty-state styling in `src/App.css`.
+
+Decision:
+
+- This step keeps the app read-only but makes the UI data-driven.
+- The sample data still matches the design document example, but the displayed balances and settlements now come from the real utility functions.
+- Form interactions are intentionally deferred to the next step so data flow can be reviewed separately.
+
+Verification:
+
+- `npm test` passed: 2 test files, 10 tests.
+- `npm run lint` passed.
+- `npm run build` passed.
+- Browser verification passed at `http://127.0.0.1:5173/`.
+- No browser console warnings or errors were observed.
+
+Useful README/submission material:
+
+- After testing the calculation utilities independently, I connected them to the UI so the displayed summaries come from the same tested logic.
+- This reduces duplication between UI examples and business logic.
+
 ## Planned Next Steps
 
-1. Add React state for a single in-memory activity.
+1. Add React state for the current in-memory activity.
 2. Add people and expense input flows.
-3. Connect balances and settlement suggestions to the tested utility functions.
+3. Add delete actions for expenses and safe person removal.
 4. Add localStorage persistence after the basic UI flow works.
