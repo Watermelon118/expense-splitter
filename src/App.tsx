@@ -567,9 +567,6 @@ function App() {
               ) : (
                 <p className="empty-state">Everyone is settled up.</p>
               )}
-              <button className="secondary-button" type="button">
-                Settle
-              </button>
             </section>
           </div>
           </section>

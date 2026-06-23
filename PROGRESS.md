@@ -517,8 +517,37 @@ Useful README/submission material:
 - The app starts empty and guides the user to create their first activity.
 - Seed data is not required for normal use.
 
+### 16. Final Submission Cleanup
+
+What changed:
+
+- Replaced the default Vite README with project-specific setup instructions.
+- Added the required written submission answers to `README.md`.
+- Removed the inactive `Settle` button from the settlement panel.
+- Removed unused scaffold/static assets that were no longer referenced by the app.
+
+Decision:
+
+- The settlement suggestions are already visible in the panel, so a separate button without a real action would be misleading.
+- The README should be enough for a reviewer to run, test, and understand the project from a clean checkout.
+- The final scope stays close to a three-hour take-home: core workflow, persistence, tests for calculation logic, and clear submission notes.
+
+Verification:
+
+- `npm test` passed.
+- `npm run lint` passed.
+- `npm run build` passed.
+- Browser verification passed:
+  - `New activity` opens the creation form.
+  - `Cancel` closes the creation form.
+  - The inactive `Settle` button is no longer present.
+  - No browser console warnings or errors were observed.
+
+Useful README/submission material:
+
+- The app uses AI-assisted development, but the key calculation logic is isolated and covered by unit tests.
+- Future improvements are intentionally listed separately from the delivered MVP.
+
 ## Planned Next Steps
 
-1. Replace the default Vite README with project-specific setup and decisions.
-2. Add written submission answers.
-3. Do a final browser pass and GitHub sync.
+1. Commit and push the finished take-home state.

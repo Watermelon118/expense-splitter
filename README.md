@@ -1,73 +1,105 @@
-# React + TypeScript + Vite
+# Expense Splitter
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A small React + TypeScript expense splitting app built for the Youtap frontend take-home exercise.
 
-Currently, two official plugins are available:
+The app lets a user create activities, add people, record shared expenses, and see a clear settlement summary showing who should pay whom.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech Stack
 
-## React Compiler
+- React
+- TypeScript
+- Vite
+- Vitest
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Getting Started
 
-## Expanding the ESLint configuration
+Install dependencies:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Start the local development server:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+Vite will print the local URL, usually:
+
+```bash
+http://localhost:5173/
+```
+
+## Useful Commands
+
+Run unit tests:
+
+```bash
+npm test
+```
+
+Run lint:
+
+```bash
+npm run lint
+```
+
+Create a production build:
+
+```bash
+npm run build
+```
+
+## What Is Implemented
+
+- Create and switch between activities.
+- Add people to an activity.
+- Record expenses with description, amount, and payer.
+- Split each expense equally across all people in the activity.
+- Show live balances for each person.
+- Show settlement instructions, for example "Alex pays Sam $12.50".
+- Persist activities in browser local storage.
+- Keep money parsing, balance calculation, and settlement logic outside the UI.
+- Unit test the core money and settlement utilities.
+
+## Assumptions
+
+- All expenses are split equally across everyone in the activity.
+- Amounts are entered in dollars and stored internally as integer cents.
+- The app is frontend-only; browser local storage is enough for this exercise.
+- Removing a person is blocked if they have paid an expense, so existing expense history cannot silently become invalid.
+- Multi-currency, unequal splits, authentication, and backend sync are outside the intended scope.
+
+## Submission Answers
+
+### 1. Workflow
+
+I started by reading the take-home brief and design notes, then defined the domain model before building UI. The core path was:
+
+1. Scaffold a Vite React TypeScript app.
+2. Define activity, person, expense, balance, and settlement types.
+3. Implement money parsing/formatting and settlement calculation as pure utilities.
+4. Add unit tests around the calculation logic.
+5. Build the UI in small steps: static layout, live data rendering, forms, persistence, then multiple activities.
+6. Polish the interaction details and remove confusing controls.
+
+### 2. Tools Used
+
+I used Vite, React, TypeScript, Vitest, ESLint, and Git. I also used AI assistance to plan the implementation, review the brief, generate first-pass code, explain tradeoffs, and check for gaps against the requirements.
+
+AI was used as a development assistant, not as a replacement for verification: the settlement logic is isolated, covered by unit tests, and checked through the running app.
+
+### 3. Assumptions
+
+The main product assumption is that every expense is shared equally by the whole group. That matches the wording of the brief and keeps the first version focused on correctness and clarity.
+
+I also assumed the app does not need accounts, backend storage, editing historical expenses, or advanced split rules for this take-home scope.
+
+### 4. If I Had Another Day
+
+I would add editable expenses, activity deletion, stronger empty/error states, browser-level tests for the main user flow, and optional unequal split support. I would also improve accessibility checks and add import/export so users can back up local data.
+
+## Project Notes
+
+The calculation logic lives in `src/utils/settlement.ts` and `src/utils/money.ts`. These files are intentionally independent from React so they can be tested and reasoned about separately from the UI.
