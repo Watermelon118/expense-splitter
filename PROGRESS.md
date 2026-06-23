@@ -548,6 +548,26 @@ Useful README/submission material:
 - The app uses AI-assisted development, but the key calculation logic is isolated and covered by unit tests.
 - Future improvements are intentionally listed separately from the delivered MVP.
 
+### 17. Simplify README For Code Submission
+
+What changed:
+
+- Simplified `README.md` so it only includes a short introduction, setup instructions, available scripts, and tech stack.
+- Removed the written submission answers from `README.md`.
+
+Decision:
+
+- The README should only explain how to start and work with the project after a reviewer clones it.
+- The take-home written answers should be sent separately in the email reply instead of being embedded in the code README.
+
+Verification:
+
+- README review passed.
+- `npm test` passed.
+- `npm run lint` passed.
+- `npm run build` passed.
+
 ## Planned Next Steps
 
-1. Commit and push the finished take-home state.
+1. Prepare the written answers separately for the submission email.
+2. Commit and push the simplified README.
