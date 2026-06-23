@@ -567,7 +567,43 @@ Verification:
 - `npm run lint` passed.
 - `npm run build` passed.
 
+### 18. Separate Design Notes From Email Answers
+
+What changed:
+
+- Removed README template, written submission answers, implementation priority notes, and final-scope recap from `DESIGN.md`.
+- Kept `DESIGN.md` focused on requirements, user flows, data model, settlement logic, validation, and unit-test expectations.
+- Added `submission-answers.txt` as a copy-ready email answer file.
+- Added the answer for question 1: workflow.
+
+Decision:
+
+- `DESIGN.md` should stay as a project requirements/design document.
+- Written answers are intended for the submission email, so they should live separately from README and design notes.
+
+Verification:
+
+- Updated files reviewed.
+
+### 19. Align Design Document With Final App
+
+What changed:
+
+- Rewrote `DESIGN.md` as a clean ASCII document.
+- Updated the design notes to match the current app state.
+- Removed outdated references to an activity delete action, a `Settle` button, component-folder structure, hooks, and disabled expense forms.
+- Added the implemented money utilities, current storage function signatures, current file structure, edit-mode remove/delete behavior, and current empty-state behavior.
+
+Decision:
+
+- The design document should describe the final project accurately instead of preserving early planning ideas that were changed during implementation.
+
+Verification:
+
+- Checked for stale references to old UI behavior and old file structure.
+- Confirmed `DESIGN.md` is ASCII-only.
+
 ## Planned Next Steps
 
-1. Prepare the written answers separately for the submission email.
-2. Commit and push the simplified README.
+1. Continue drafting questions 2-4 in `submission-answers.txt`.
+2. Commit and push the documentation cleanup after the email answers are ready.

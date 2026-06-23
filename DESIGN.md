@@ -10,8 +10,8 @@ The app allows a user to:
 * Add people to the activity.
 * Remove accidentally added people when safe.
 * Record expenses, including who paid, how much, and what the expense was for.
-* View each person’s current balance.
-* Generate clear settlement suggestions showing who should pay whom.
+* View each person's current balance.
+* View clear settlement suggestions showing who should pay whom.
 
 The project is intentionally frontend-only and runs locally from a clean checkout. Data is stored in the browser using `localStorage` to provide lightweight persistence without adding backend complexity.
 
@@ -26,11 +26,11 @@ The project is intentionally frontend-only and runs locally from a clean checkou
 3. Generate clear settlement instructions.
 4. Keep settlement logic separate from UI code.
 5. Make the core calculation logic unit-testable.
-6. Keep the scope realistic for a four-hour take-home task.
+6. Keep the scope realistic for a take-home task.
 
 ### Non-goals
 
-The project will not include:
+The project does not include:
 
 * User registration or login.
 * Backend API.
@@ -40,7 +40,7 @@ The project will not include:
 * Payment integration.
 * Real-time sync.
 * Multi-currency support.
-* Unequal split support in the initial version.
+* Unequal split support.
 
 These are intentionally excluded to keep the project focused on the core frontend and settlement logic.
 
@@ -48,57 +48,59 @@ These are intentionally excluded to keep the project focused on the core fronten
 
 ## 3. Tech Stack
 
-Recommended stack:
+Implemented stack:
 
 * React
 * TypeScript
 * Vite
 * Vitest
-* Plain CSS or CSS modules
+* Plain CSS
 
 Reasoning:
 
-* React and TypeScript are common and appropriate for a New Zealand frontend role.
+* React and TypeScript are appropriate for a frontend take-home task.
 * Vite keeps setup lightweight and fast.
 * TypeScript makes the data model and calculation logic safer.
-* Vitest allows the settlement logic to be tested independently from the UI.
+* Vitest allows the money and settlement logic to be tested independently from the UI.
 
 ---
 
 ## 4. User Flow
 
-### 4.1 Home Page
+### 4.1 First Load
 
-When the user opens the app, they see:
+When the user opens the app with no saved browser data, they see:
 
-* A list of previous activities stored in `localStorage`.
-* A button to create a new activity.
+* An empty Activities sidebar.
+* A `New activity` button.
+* An empty detail panel explaining that they should create an activity first.
 
-Each activity card should show:
+### 4.2 Activity List
+
+When activities exist, the sidebar shows saved activities from `localStorage`.
+
+Each activity card shows:
 
 * Activity name.
 * Number of people.
 * Number of expenses.
 * Total amount spent.
-* Last updated time.
+* Last updated date.
 
 Example:
 
 ```text
 Queenstown Trip
-4 people · 3 expenses · Total $1,000.00
-Last updated: 2026-06-19
+4 people | 3 expenses | Total $1,000.00
+Updated 19 Jun 2026
 ```
 
 Actions:
 
-* Open activity.
-* Create new activity.
-* Optionally delete activity if time allows.
+* Select an activity.
+* Create a new activity.
 
----
-
-### 4.2 Create Activity
+### 4.3 Create Activity
 
 The user enters an activity name:
 
@@ -106,23 +108,21 @@ The user enters an activity name:
 Activity name: Queenstown Trip
 ```
 
-After creation, the app navigates to the activity detail page.
+After creation, the app selects the new activity and shows the activity detail panel.
 
 Validation:
 
 * Activity name is required.
-* Activity name should not be empty after trimming whitespace.
+* Activity name cannot be empty after trimming whitespace.
 
----
-
-### 4.3 Activity Detail Page
+### 4.4 Activity Detail Page
 
 The activity detail page contains four main sections:
 
 1. People
 2. Expenses
-3. Current balances
-4. Settlement suggestions
+3. Balances
+4. Settlement
 
 ---
 
@@ -145,33 +145,23 @@ Validation:
 
 * Name is required.
 * Name cannot be only whitespace.
-* Duplicate names within the same activity should be prevented or warned against.
+* Duplicate names within the same activity are prevented case-insensitively.
 
-Recommended behavior:
+Example error:
 
 ```text
-"Alex" already exists in this activity.
+Alex is already in this activity.
 ```
 
 ---
 
 ## 5.2 Remove People
 
-The user can remove accidentally added people.
+The user can remove accidentally added people from edit mode.
 
-Example:
+If `E` was added by mistake and has not paid any expense, the user can click `Edit` in the People section and remove `E` with the minus button.
 
-```text
-A
-B
-C
-D
-E
-```
-
-If `E` was added by mistake and has not paid any expense, the user can remove `E`.
-
-### Removal rule
+### Removal Rule
 
 A person can be removed only if they are not used as the payer of any recorded expense.
 
@@ -184,7 +174,7 @@ If `A` paid for Hotel and the app removes `A`, the expense would reference a mis
 If a person has not paid any expense:
 
 ```text
-Remove E
+Click Edit, then remove the person with the minus button.
 ```
 
 Allowed.
@@ -192,16 +182,12 @@ Allowed.
 If a person has paid one or more expenses:
 
 ```text
-A cannot be removed because they are linked to existing expenses. Delete those expenses first.
+A cannot be removed because they are linked to existing expenses.
 ```
 
 Blocked.
 
-### Important design decision
-
-All expenses are split equally across the current activity members.
-
-Therefore, if an accidentally added unpaid person is removed, the balances are recalculated automatically using the remaining members.
+All expenses are split equally across the current activity members. If an unpaid person is removed, balances and settlement suggestions are recalculated automatically using the remaining members.
 
 ---
 
@@ -221,45 +207,36 @@ Amount: 300
 Paid by: A
 ```
 
-Another example:
-
-```text
-Description: Fuel
-Amount: 200
-Paid by: B
-```
-
 For the MVP, every expense is split equally across all current people in the activity.
 
 Validation:
 
+* There must be at least two people before adding expenses.
 * Description is required.
 * Amount is required.
 * Amount must be greater than 0.
+* Amount can have up to two decimal places.
 * Payer must be selected.
-* There must be at least 2 people before adding expenses.
 
 ---
 
 ## 5.4 Delete Expenses
 
-The user can delete an expense if it was entered incorrectly.
+The user can delete an expense from edit mode if it was entered incorrectly.
 
 Example:
 
 ```text
-Hotel — A paid $300.00 — Delete
+Hotel - A paid $300.00 - remove with the minus button
 ```
 
-After deleting an expense, balances and settlement suggestions should update automatically.
-
-Editing expenses is optional. If time is limited, deleting and re-adding is enough for the MVP.
+After deleting an expense, balances and settlement suggestions update automatically.
 
 ---
 
 ## 5.5 Current Balances
 
-The app should display each person’s current balance.
+The app displays each person's current balance.
 
 Current balance means:
 
@@ -306,7 +283,7 @@ C is owed $250.00
 D owes $250.00
 ```
 
-If a person’s balance is 0:
+If a person's balance is 0:
 
 ```text
 A is settled up
@@ -316,7 +293,7 @@ A is settled up
 
 ## 5.6 Settlement Suggestions
 
-The user clicks a `Settle` button to view transfer suggestions.
+The app shows settlement suggestions directly in the Settlement panel.
 
 Example:
 
@@ -333,13 +310,7 @@ If no payments are needed:
 Everyone is settled up.
 ```
 
-Settlement suggestions can be shown in:
-
-* A modal
-* A panel below the button
-* A simple result card
-
-A modal is acceptable, but the logic should not depend on the modal. The calculation should come from pure utility functions.
+The settlement panel also shows the number of suggested transfers. The calculation comes from pure utility functions and does not depend on the UI.
 
 ---
 
@@ -385,7 +356,7 @@ export type Expense = {
 
 Important:
 
-Amounts should be stored internally in cents to reduce floating point precision issues.
+Amounts are stored internally in cents to reduce floating point precision issues.
 
 Example:
 
@@ -430,9 +401,35 @@ fromPersonId pays toPersonId amountCents
 
 ---
 
-## 7. Settlement Logic
+## 7. Money Utilities
 
-The settlement logic should be implemented separately from React components.
+The app keeps amount parsing and formatting separate from React components.
+
+Recommended file:
+
+```text
+src/utils/money.ts
+```
+
+Functions:
+
+```ts
+export function parseAmountToCents(input: string): number | null;
+export function formatCents(amountCents: number): string;
+```
+
+Behavior:
+
+* Accept whole dollar amounts, for example `10`.
+* Accept one or two decimal places, for example `10.5` and `10.99`.
+* Reject empty, zero, negative, non-numeric, and more-than-two-decimal inputs.
+* Format cents as dollar strings, for example `1099 => $10.99`.
+
+---
+
+## 8. Settlement Logic
+
+The settlement logic is implemented separately from React components.
 
 Recommended file:
 
@@ -440,31 +437,27 @@ Recommended file:
 src/utils/settlement.ts
 ```
 
-Recommended functions:
+Functions:
 
 ```ts
 export function calculateBalances(
   people: Person[],
-  expenses: Expense[]
-): Balance[] {
-  // implementation
-}
+  expenses: Expense[],
+): Balance[];
 
 export function calculateSettlements(
-  balances: Balance[]
-): Settlement[] {
-  // implementation
-}
+  balances: Balance[],
+): Settlement[];
 ```
 
 ---
 
-## 7.1 Balance Calculation
+## 8.1 Balance Calculation
 
 For each expense:
 
-1. Add the full amount to the payer’s balance.
-2. Subtract each person’s fair share from every current activity member.
+1. Add the full amount to the payer's balance.
+2. Subtract each person's fair share from every current activity member.
 
 Formula:
 
@@ -480,7 +473,7 @@ Example:
 100 cents / 3 people = 33 cents each with 1 cent remainder
 ```
 
-Recommended simple handling:
+Implemented handling:
 
 * Divide using integer cents.
 * Distribute the remainder one cent at a time to the first people in stable order.
@@ -498,7 +491,7 @@ This keeps the total exact.
 
 ---
 
-## 7.2 Settlement Calculation
+## 8.2 Settlement Calculation
 
 Algorithm:
 
@@ -541,17 +534,19 @@ D pays C $250.00
 
 ---
 
-## 8. Local Storage
+## 9. Local Storage
 
-The app should persist activities using browser `localStorage`.
+The app persists activities using browser `localStorage`.
 
-Storage key:
+Storage keys:
 
 ```ts
-const STORAGE_KEY = "expense-splitter.activities";
+const ACTIVITIES_STORAGE_KEY = "expense-splitter.activities";
+const CURRENT_ACTIVITY_STORAGE_KEY = "expense-splitter.currentActivity";
+const SELECTED_ACTIVITY_STORAGE_KEY = "expense-splitter.selectedActivityId";
 ```
 
-Recommended utility file:
+Utility file:
 
 ```text
 src/utils/storage.ts
@@ -560,163 +555,156 @@ src/utils/storage.ts
 Functions:
 
 ```ts
-export function loadActivities(): Activity[] {
-  // read from localStorage
-}
-
-export function saveActivities(activities: Activity[]): void {
-  // save to localStorage
-}
+export function loadActivities(fallbackActivities: Activity[]): Activity[];
+export function saveActivities(activities: Activity[]): void;
+export function loadSelectedActivityId(fallbackActivityId: string): string;
+export function saveSelectedActivityId(activityId: string): void;
 ```
 
 Behavior:
 
 * On app load, read activities from localStorage.
-* On activity create/update/delete, save back to localStorage.
+* On activity create/update, save activities back to localStorage.
+* Store the selected activity id separately.
+* Keep a migration fallback for the earlier single-activity storage key.
 * If localStorage is empty, show an empty state.
 * If localStorage data is invalid, fail safely and start with an empty list.
 
 ---
 
-## 9. Suggested File Structure
+## 10. File Structure
 
 ```text
 expense-splitter/
-├── README.md
-├── package.json
-├── vite.config.ts
-├── index.html
-├── src/
-│   ├── main.tsx
-│   ├── App.tsx
-│   ├── types.ts
-│   ├── styles.css
-│   ├── components/
-│   │   ├── ActivityList.tsx
-│   │   ├── ActivityForm.tsx
-│   │   ├── ActivityDetail.tsx
-│   │   ├── PeopleSection.tsx
-│   │   ├── ExpenseSection.tsx
-│   │   ├── BalanceSummary.tsx
-│   │   └── SettlementSummary.tsx
-│   ├── utils/
-│   │   ├── money.ts
-│   │   ├── settlement.ts
-│   │   ├── settlement.test.ts
-│   │   └── storage.ts
-│   └── hooks/
-│       └── useActivities.ts
+|-- README.md
+|-- DESIGN.md
+|-- PROGRESS.md
+|-- submission-answers.txt
+|-- package.json
+|-- package-lock.json
+|-- vite.config.ts
+|-- index.html
+|-- public/
+|   `-- favicon.svg
+`-- src/
+    |-- main.tsx
+    |-- App.tsx
+    |-- App.css
+    |-- index.css
+    |-- types.ts
+    `-- utils/
+        |-- money.ts
+        |-- money.test.ts
+        |-- settlement.ts
+        |-- settlement.test.ts
+        `-- storage.ts
 ```
 
-If time is tight, `hooks/useActivities.ts` can be skipped and state can be managed directly in `App.tsx`.
+The current implementation keeps UI state in `App.tsx`. This is acceptable for the MVP because the app is small and the calculation/storage logic is already separated into utility modules.
 
 ---
 
-## 10. UI Layout
+## 11. UI Layout
 
-## 10.1 Home Page
+## 11.1 Overall Layout
 
-Suggested layout:
+The app uses a two-column workspace:
 
 ```text
-Expense Splitter
+Header
+[ New activity ]
 
-Create a new activity
-[ Activity name input ] [ Create ]
-
-Previous activities
-
-[ Queenstown Trip ]
-4 people · 3 expenses · Total $1,000.00
-[ Open ]
-
-[ Group Dinner ]
-5 people · 4 expenses · Total $320.00
-[ Open ]
+Activities sidebar | Selected activity detail
 ```
 
-Empty state:
+The sidebar contains:
+
+* Saved activity cards.
+* Activity creation form when `New activity` is active.
+* Empty state when there are no activities.
+
+The detail panel contains:
+
+* Activity name and total spent.
+* People panel.
+* Expenses panel.
+* Balances panel.
+* Settlement panel.
+
+## 11.2 Empty State
+
+When no activity exists:
 
 ```text
-No activities yet.
-Create your first activity to start splitting expenses.
+No activity yet
+Create your first activity to add people, record expenses, and see settlement suggestions.
 ```
 
----
-
-## 10.2 Activity Detail Page
-
-Suggested layout:
+## 11.3 Activity Detail Example
 
 ```text
+Current activity
 Queenstown Trip
-
-[ Back to activities ]
+Total spent $1,000.00
 
 People
-[ Name input ] [ Add person ]
-
-A [Remove]
-B [Remove]
-C [Remove]
-D [Remove]
+[ Edit ]
+[ Name input ] [ Add ]
+A
+B
+C
+D
 
 Expenses
-[ Description input ]
-[ Amount input ]
-[ Paid by dropdown ]
-[ Add expense ]
+[ Edit ]
+[ Description input ] [ Amount input ] [ Paid by dropdown ] [ Add expense ]
+Hotel       A paid $300.00
+Fuel        B paid $200.00
+Car Rental  C paid $500.00
 
-Hotel — A paid $300.00 [Delete]
-Fuel — B paid $200.00 [Delete]
-Car Rental — C paid $500.00 [Delete]
-
-Current Balances
+Balances
 A is owed $50.00
 B owes $50.00
 C is owed $250.00
 D owes $250.00
 
-[ Settle ]
-
-Settlement Suggestions
-D pays C $250.00
+Settlement
+2 transfers
 B pays A $50.00
+D pays C $250.00
 ```
+
+Remove and delete controls are hidden by default and shown only after clicking the relevant `Edit` button.
 
 ---
 
-## 11. Validation and Edge Cases
+## 12. Validation and Edge Cases
 
-## 11.1 No activities
+## 12.1 No activities
 
-Show empty state.
+Show an empty Activities sidebar and an empty detail state.
 
-## 11.2 No people in an activity
+## 12.2 No people in an activity
 
-Show:
+The expense form remains visible, but submitting an expense shows:
 
 ```text
 Add at least two people before recording expenses.
 ```
 
-Disable expense form.
+## 12.3 Only one person
 
-## 11.3 Only one person
-
-Show:
+Submitting an expense shows:
 
 ```text
-At least two people are required to split expenses.
+Add at least two people before recording expenses.
 ```
 
-Disable expense form.
-
-## 11.4 Duplicate person name
+## 12.4 Duplicate person name
 
 Prevent duplicate names in the same activity.
 
-## 11.5 Invalid amount
+## 12.5 Invalid amount
 
 Reject:
 
@@ -724,16 +712,17 @@ Reject:
 * Zero
 * Negative amount
 * Non-numeric input
+* More than two decimal places
 
-## 11.6 Remove payer
+## 12.6 Remove payer
 
 If a person has paid any expense, block removal.
 
-## 11.7 Delete expense
+## 12.7 Delete expense
 
-Allow deletion and recalculate balances immediately.
+Allow deletion from edit mode and recalculate balances immediately.
 
-## 11.8 No expenses
+## 12.8 No expenses
 
 Show:
 
@@ -741,9 +730,9 @@ Show:
 No expenses recorded yet.
 ```
 
-Balances should be zero or hidden until expenses exist.
+Balances are shown as settled up for existing people. If there are no people, the balance list is empty.
 
-## 11.9 Already settled
+## 12.9 Already settled
 
 If all balances are zero, show:
 
@@ -753,265 +742,23 @@ Everyone is settled up.
 
 ---
 
-## 12. Unit Tests
+## 13. Unit Tests
 
-Recommended test file:
+Test files:
 
 ```text
+src/utils/money.test.ts
 src/utils/settlement.test.ts
 ```
 
-Minimum tests:
-
-### Test 1: One payer, equal split
-
-People:
-
-```text
-A, B, C
-```
-
-Expense:
-
-```text
-A paid $90
-```
-
-Expected balances:
-
-```text
-A +6000 cents
-B -3000 cents
-C -3000 cents
-```
-
-Expected settlements:
-
-```text
-B pays A 3000
-C pays A 3000
-```
-
----
-
-### Test 2: Multiple payers
-
-People:
-
-```text
-A, B, C, D
-```
-
-Expenses:
-
-```text
-A paid $300
-B paid $200
-C paid $500
-```
-
-Expected balances:
-
-```text
-A +5000
-B -5000
-C +25000
-D -25000
-```
-
-Expected total settlement amount:
-
-```text
-30000 cents
-```
-
----
-
-### Test 3: No expenses
-
-Expected:
-
-```text
-All balances are 0
-No settlements
-```
-
----
-
-### Test 4: Already settled
-
-People:
-
-```text
-A, B
-```
-
-Expenses:
-
-```text
-A paid $50
-B paid $50
-```
-
-Expected:
-
-```text
-A 0
-B 0
-No settlements
-```
-
----
-
-### Test 5: Rounding cents
-
-People:
-
-```text
-A, B, C
-```
-
-Expense:
-
-```text
-A paid $1.00
-```
-
-Expected:
-
-```text
-The total balances should sum to 0 exactly.
-No cents should disappear due to rounding.
-```
-
----
-
-## 13. README Content
-
-The README should include:
-
-````md
-# Expense Splitter
-
-A small frontend web app for splitting shared expenses within an activity such as a trip or group dinner.
-
-## Tech Stack
-
-- React
-- TypeScript
-- Vite
-- Vitest
-
-## Getting Started
-
-```bash
-npm install
-npm run dev
-````
-
-## Run Tests
-
-```bash
-npm test
-```
-
-## Product Decisions
-
-The app is modelled around activities because shared expenses usually belong to a specific trip, dinner, or event.
-
-The app is frontend-only and uses localStorage for lightweight persistence. I avoided backend storage, authentication, and deployment because the brief asks for a locally runnable frontend web app and the four-hour time limit makes scope control important.
-
-All expenses are split equally across the current activity members. This matches the minimum requirement in the brief and keeps the initial version focused on the core settlement logic.
-
-## Assumptions
-
-* Each expense is split equally across all current activity members.
-* Amounts are stored in cents internally.
-* A person cannot be removed if they are the payer of an existing expense.
-* Data is stored locally in the browser and is not synced across devices.
-* No authentication or backend is included.
-
-## What I Would Improve With More Time
-
-* Custom split participants per expense.
-* Unequal split amounts or percentages.
-* Editing expenses and people.
-* Better accessibility and keyboard navigation.
-* Exporting or sharing settlement results.
-* Backend support only if cross-device access or collaboration became a product requirement.
-
-```
-
----
-
-## 14. Written Answers for Submission
-
-## 14.1 What was your workflow?
-
-I started by identifying the core requirement: calculating shared expense balances correctly and turning them into clear settlement instructions. I modelled the app around an activity such as a trip or dinner, then designed the data structures and settlement algorithm before building the UI. I kept the calculation logic separate from React components so it could be unit-tested independently.
-
----
-
-## 14.2 What tools did you use?
-
-I used React, TypeScript, Vite, and Vitest. I also used AI tools as a planning and review aid: first to clarify the scope for a four-hour take-home, then to sanity-check the data model, settlement logic, and README structure. The final implementation decisions and code review were done by me.
-
----
-
-## 14.3 What assumptions did you make?
-
-I assumed each expense is split equally across all current members of the activity, since the brief only requires shared group expenses at minimum. I also assumed there is no need for accounts, authentication, backend storage, or multi-currency support. Data is stored locally in the browser using localStorage, which keeps the app frontend-only while still preserving activity history between sessions.
-
----
-
-## 14.4 If you had another day, what would you add or improve?
-
-I would add custom split participants per expense, unequal splits by amount or percentage, editing for people and expenses, stronger accessibility support, and more tests around rounding edge cases. I would only add a backend if the product needed cross-device access, shared links, or real-time collaboration.
-
----
-
-## 15. Implementation Priority
-
-To stay within four hours, implementation should follow this order:
-
-1. Define TypeScript types.
-2. Implement settlement logic.
-3. Add unit tests for settlement logic.
-4. Build home page and activity creation.
-5. Build activity detail page.
-6. Add people management.
-7. Add expense management.
-8. Add balance summary.
-9. Add settlement suggestions.
-10. Add localStorage persistence.
-11. Polish UI and README.
-
-If time becomes tight, prioritize:
-
-1. Settlement logic correctness.
-2. Clean UI for adding people and expenses.
-3. Clear settlement output.
-4. README explanation.
-
-LocalStorage and styling are useful, but they should not come at the cost of broken settlement logic.
-
----
-
-## 16. Final Scope
-
-Final MVP:
-
-- React + TypeScript + Vite frontend web app.
-- Activity-based structure.
-- Activity history saved in localStorage.
-- Add/remove people.
-- Add/delete expenses.
-- Equal split across all current activity members.
-- Current balance summary.
-- Settlement suggestions.
-- Pure settlement functions.
-- Unit tests for settlement logic.
-- Clear README with setup instructions and assumptions.
-
-This scope fully addresses the brief while staying realistic for a four-hour take-home project.
-```
+Covered behavior:
+
+* Parse whole dollar and decimal amounts into cents.
+* Reject invalid or non-positive amounts.
+* Format cents as dollar amounts.
+* Split one payer expense equally.
+* Handle multiple payers.
+* Return zero balances when there are no expenses.
+* Keep total balances at zero when cents do not split evenly.
+* Create settlement suggestions from balances.
+* Return no settlements when everyone is settled.
