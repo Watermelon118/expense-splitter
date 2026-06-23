@@ -6,7 +6,19 @@ Users can create an activity, add people, record expenses, and see a live summar
 
 ## Getting Started
 
-Clone the repository and install dependencies:
+Clone the repository:
+
+```bash
+git clone https://github.com/Watermelon118/expense-splitter.git
+```
+
+Go into the project folder:
+
+```bash
+cd expense-splitter
+```
+
+Install dependencies:
 
 ```bash
 npm install
